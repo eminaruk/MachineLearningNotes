@@ -281,3 +281,169 @@ reshaped_array = myarray.reshape(3, -1) # so, I just want to 3 row and I don't c
 
 # print(reshaped_array.shape) # (3, 12) # as you can seee three tiems twelve qual to total element number :)
 
+
+### Stacking togother the different arrays 
+
+a = np.floor(20 * rg.random((2,2)))
+b = np.floor(20 * rg.random((2,2)))
+
+stacked_a_b_vertical = np.vstack((a,b))
+stacked_a_b_horizontal = np.hstack((a,b))
+
+# print(stacked_a_b_vertical)
+ 
+            #  [[ 5.  3. 19.]
+            #  [10.  2. 12.]
+            #  [15. 12. 18.]
+            #  [ 0. 10.  9.]
+            #  [ 1. 12. 17.]
+            #  [11.  5. 16.]]
+# print(stacked_a_b_horizontal)
+
+            # [[ 5.  3. 19.  0. 10.  9.]
+            #  [10.  2. 12.  1. 12. 17.]
+            #  [15. 12. 18. 11.  5. 16.]]
+
+
+from numpy import newaxis
+
+columns_stack = np.column_stack((a,b))
+# print(columns_stack)
+
+            # [[ 5.  3. 19.  0. 10.  9.]
+            #  [10.  2. 12.  1. 12. 17.]
+            #  [15. 12. 18. 11.  5. 16.]]
+
+a = np.array([4., 2.])
+b = np.array([3., 8.])
+
+h_stacked_array = np.hstack((a,b))
+# print(h_stacked_array)
+# [4. 2. 3. 8.]
+
+a_Like_2dimention = a[:, newaxis] # this code provides to view a as a 2D array 
+
+# print(a_Like_2dimention)  
+            # [[4.]
+            #  [2.]]
+
+# let's stack their 2d views horizontally but
+
+b_Like_2dimention = b[:, newaxis]
+
+h_stacked_array = np.hstack((a_Like_2dimention, b_Like_2dimention))
+column_stacked_array = np.column_stack((a, b))
+# print(h_stacked_array)
+# print(column_stacked_array)
+
+            # [[4. 3.]
+            #  [2. 8.]]
+            # [[4. 3.]
+            #  [2. 8.]]  #! as you can see, the result is the same with the column stack :)
+
+
+### splitting one array into the several smaller ones 
+
+sample_array_for_splitting = np.floor(10 * rg.random((2,12)))  
+# print(sample_array_for_splitting)
+            # [[9. 0. 5. 4. 0. 6. 8. 5. 2. 8. 5. 5.]
+            #  [7. 1. 8. 6. 7. 1. 8. 1. 0. 8. 8. 8.]]
+
+split_into_the_3pcs = np.hsplit(sample_array_for_splitting, 3)
+# print(split_into_the_3pcs)
+
+            # [array([[9., 0., 5., 4.],
+            #        [7., 1., 8., 6.]]), array([[0., 6., 8., 5.],
+            #        [7., 1., 8., 1.]]), array([[2., 8., 5., 5.],
+            #        [0., 8., 8., 8.]])]
+
+split_after_columns = np.hsplit(sample_array_for_splitting, (4,5))
+# print(split_after_columns)
+
+            # [array([[9., 0., 5., 4.],
+            #        [7., 1., 8., 6.]]), array([[0.],
+            #        [7.]]), array([[6., 8., 5., 2., 8., 5., 5.],
+            #        [1., 8., 1., 0., 8., 8., 8.]])]
+
+
+### copies and views
+
+#! the function calls make no copy:
+
+def f(x):
+
+    print(id(x))
+
+
+# print(id(a))
+# f(a)
+
+            # 2885855918384
+            # 2885855918384  # as you can see, when we call the function, the function doesn't create a new copy for argument
+
+a = np.floor(10 * rg.random((3,4)))
+s = a[:, 1:3]
+s[:] = 10  ## this is not a copy, is a view. Hence, it owns the data and when you make a change on it, you make the change on the s also
+
+# print(a)
+# print(s)
+
+            # [[ 4. 10. 10.  6.]
+            #  [ 7. 10. 10.  2.]
+            #  [ 6. 10. 10.  1.]]
+            # 10
+
+
+## deep copy
+
+a = np.arange(int(1e8))
+
+# the expression 1e8 represents a mathematical notation for a number, which is equal to 10,000,000. 
+# It's using scientific notation, where 1e8 means "1 times 10 to the power of 8," and 10 to the power of 8 is 100,000,000.
+
+b = a[:100].copy() # we don't need to copy whole the large array, we just take wha we need from the large array.
+del a
+
+
+### advanced indexing
+
+a = np.arange(12)**2 
+j = np.array([2,5,4,7,9])
+
+# print(a[j])  # [ 4 25 16 49 81] #! the each element corresponds the one index of a
+
+a = np.arange(12).reshape(3,4)
+i = np.array([[1,2],
+              [0,1]])
+
+j = np.array([[0,3],
+              [0,3]])
+
+# print(a)
+
+            # [[ 0  1  2  3]
+            #  [ 4  5  6  7]
+            #  [ 8  9 10 11]]
+# print(a[i,j])
+
+            # [[ 4 11]
+            #  [ 0  7]]
+
+
+### indexing with boolen arrays
+
+# a quick example
+
+a = np.arange(15).reshape(3,5)
+b = a > 7
+# print(a[b]) # [ 8  9 10 11 12 13 14]
+
+#! and also we can modify the items like that:
+a[b] = 0
+# print(a)
+
+
+        # # [[0 1 2 3 4]
+        # #  [5 6 7 0 0]
+        # #  [0 0 0 0 0]]
+
