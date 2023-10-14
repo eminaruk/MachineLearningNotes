@@ -198,10 +198,161 @@ array_from_data = np.genfromtxt(StringIO(data), **kwargs, usemask=False)
 
 
 
+### overflow errors
+
+#! sometimes, numpy function can't detect the correct number:
+
+number1 = np.power(100,8, dtype=np.int64)
+number2 = np.power(100,8, dtype=np.int32)
+
+# print(number1)  ## 10000000000000000 #! this is the true result in this section
+# print(number2)  ## 1874919424  #! even the result is the same, int32 dtype is not enough to store this large number
+
+### in case, we can learn minumun and maximum values of a data type in the numpy 
+
+def give_the_number_info(dtype):
+
+    return np.iinfo(dtype)
+
+# print(give_the_number_info(int))
+
+# print(np.finfo(np.longdouble))
+
+### broadcasting
+
+#! sometimes, operations in the two or more differetn numpy object, numpy automatically expand the smaller one to match with the bigger object.
+
+simple_array = np.array([1,2,4])
+any_number = 3
+
+operation_result = simple_array * any_number
+# print(operation_result)  # the numpy completed the smaller dimention to the biggest dimention 
+
+#! also, we can make possible that broadcast two differen 1-d arrays 
+ 
+one_dimention_array = np.array([1,2,3,4])
+one_dimention_array2 = np.array([1,2,3])
+
+# first_braoadcasting = one_dimention_array + one_dimention_array2
+# print(first_braoadcasting) # here you are, you got an error :)
+# if we want to broadcast two of array succesfully, we have to convert first arrays columns to rows by using newaxis
+
+new_one_dimention_array = one_dimention_array[:, np.newaxis]
+
+second_broadcsting = new_one_dimention_array + one_dimention_array2
+# print(second_broadcsting)
+
+### vector quantization example
+#! we will find the closest observation to codes in this example
+
+# Create an observation (the athlete to be classified)
+observation = np.array([111.0, 188.0])
+
+# Create an array of known codes (athlete classes)
+codes = np.array([[102.0, 203.0],
+                 [132.0, 193.0],
+                 [45.0, 155.0],
+                 [57.0, 173.0]])
+
+diff = codes - observation #! in here, the broadcsting is running
+# print(dif) # we got the differences between observation and code 
+
+# and we will calculate the euklidean distance with the formula
+# print(diff)
+dist = np.sqrt(np.sum(diff ** 2, axis=1))
+# print(dist)
+# print(np.sqrt(np.sum(diff[0] ** 2)))
+# print(dist)
+
+best_match = dist[np.argmin(dist)]# we get the shortest or nearsest distances index between obsevation and codes and it is the best match
+
+# print(best_match)
+
+
+### some tips about copies and views
+
+x = np.array([1,2,3,4,5,6,7,8,9])
+y = x[0:5]  ## this is view becasue:
+
+x[0:3] = [10,11,12]
+# print(y)  #[10 11 12  4  5]  # as you can see, the y is the view of the x
+
+#! but, there is differencee between basic indexing and advanced indexing:
+
+x = np.arange(15).reshape(5,3)
+
+y = x[[2,3]]
+is_y_view = y.base
+# print(is_y_view)  ## None #! as you can see the result, y is an copy of the x
+
+
+### Structured arrays
+
+## structured datatypes 
+
+#! there area several ways to define structured datatypes but i chooes the dictionary method
+#! because the dictionary method the simpliest and organized way to do that for me 
+
+dtype = np.dtype({
+
+    "names" : ["column1", "column2"],
+    "formats" : ["f4", "i4"]
+
+})  # dictionary method requires two options: names and formats 
+
+#! if you wanti you can specify the offset that is optional
+
+dtype = np.dtype({
+
+    "names" : ["column1", "column2"],
+    "formats" : ["f4", "i4"],
+    "offsets" : [4,8] # that means the first columns start from the 4th byte and second one starts from 8th byte
+})
+
+#! and you can specify the total byte size also
+
+dtype = np.dtype({
+
+    "names" : ["column1", "column2"],
+    "formats" : ["f4", "i4"],
+    "offsets" : [4,8], # that means the first columns start from the 4th byte and second one starts from 8th byte
+    "itemsize" : 16
+})
+
+#! for me, the shortest way to describe all these section is:
+
+dtype = np.dtype({'column1': ('f4', 4), 'columns': ('i4', 8)})
+
+
+## manipulating and alignment of the structured data types 
+
+def print_offsets(d):
+    print("offsets:", [d.fields[name][1] for name in d.names])
+    print("itemsize:", d.itemsize)
+
+# print_offsets(np.dtype('u1, u1, i4, u1, i8, u2')) # offsets: [0, 1, 2, 6, 7, 15]
+                                                  # itemsize: 17
+                                                  # each elements offset starts from the end of previous element
+
+                                
+# print_offsets(np.dtype('u1, u1, i4, u1, i8, u2', align=True))   #offsets: [0, 1, 4, 8, 16, 24]
+                                                                # itemsize: 32
+                                                                # each elements offset start from a new byte
+
+
+np.dtype({'name': ('i4', 0, 'my title')})  ## you can also define a file title addiditonally with this code
 
 
 
+### also we can create a dtype which is based on another dtype
 
+example_dtype = np.dtype([("number", "float64"), ("name", "U4")])
+array = np.array([(1.5, "emin"), (3.4 ,"elif")], dtype=example_dtype)
 
+field_descriptions = example_dtype.descr
+field_descriptions.append(("ages", "int32"))
 
+new_dtype = np.dtype(field_descriptions)
+new_array = np.array([(1.2, "emin",19), (4.2, "elif", 19)], dtype=new_dtype)
 
+# print(new_array)
