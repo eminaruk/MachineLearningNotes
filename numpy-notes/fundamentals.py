@@ -356,3 +356,199 @@ new_dtype = np.dtype(field_descriptions)
 new_array = np.array([(1.2, "emin",19), (4.2, "elif", 19)], dtype=new_dtype)
 
 # print(new_array)
+
+
+### record arrays
+
+recordarr = np.rec.array([(3,7.5, "hello"), (5, 6.5, "hi!")], dtype= [("first", "i4"), ("second", "f4"), ("third", "S10")])
+# print(recordarr)
+
+#! also, you can access the any of field without define a string name:
+# print(recordarr.first) 
+
+#! when you try to the same thing on the normal array:
+normal_array = np.array([(3,7.5, "hello"), (5, 6.5, "hi!")], dtype= [("first", "i4"), ("second", "f4"), ("third", "S10")])
+
+# print(normal_array.first)  #! that gives you an error!ß
+
+### helper functions to the recarray
+
+## append a new feld:
+
+from numpy.lib.recfunctions import append_fields
+
+normal_array = append_fields(normal_array, "new_field", ("ibrahim","eyup"), dtypes="S12")
+
+# print(normal_array)
+
+## applying along fields
+
+from numpy.lib import recfunctions as rfn 
+
+an_array = np.array([(1,2,3),(4,5,6),(7,8,9)], dtype=[("first_column", "i4"),("second_column", "f4"),("third_column", "i4")])
+
+any_process_i_run = rfn.apply_along_fields(np.mean, an_array[["first_column"]])
+# print(any_process_i_run)
+
+
+## assingning two structured arrays by the name
+
+array1 = np.array([(1,2.,"emin"),(3,5.,"elif")], dtype=[("name1", "i4"), ("name2", "f4"), ("name3", "U10")])
+
+array2 = np.array([(5,6.,"ibrahim"), (3,7., "eyup")], dtype=[("name1", "i4"), ("name2", "f4"), ("name3", "U10")])
+
+rfn.assign_fields_by_name(array2, array1)
+# print(array2)
+
+
+## dropping fields from the array
+
+any_array_for_this_example = np.array([(1, (2, 4.5)), (3, (4, 5.6))], dtype=[("first_column", np.int64),("second_column", [("second_column_container_a", np.double), ("second_column_container_b", np.int64)])])
+
+result_array = rfn.drop_fields(any_array_for_this_example, "first_column")
+# print(result_array)
+
+## find the dublicates in the structured arrays 
+
+dtype = [("a", int)]
+
+a = np.ma.array([1,1,7,8,45,4,32,0,0,6,5,2,1], mask = [0,0,0,1,1,1,1,0,1,1,0,1,0]).view(dtype)   #! np.ma is for creating masked arrays
+
+
+result_of_duplicates = rfn.find_duplicates(a, ignoremask=True)
+
+# print(result_of_duplicates)
+
+#! a short description of a masked array:
+
+# Create a NumPy array with some missing or invalid values
+data = np.array([1, 2, -999, 4, 5, -999, 7])
+
+# Create a mask array to specify which elements are invalid
+mask = (data == -999)
+
+# Create a masked array by combining data and mask
+masked_data = np.ma.array(data, mask=mask)
+
+# Perform operations on the masked array
+# For example, calculate the mean without considering the masked elements
+mean = np.ma.mean(masked_data)
+
+# Print the masked array and the calculated mean
+            # print("Original Data:", data)
+            # print("Masked Array:", masked_data)
+            # print("Mean (excluding masked values):", mean)
+
+
+### flatten a structured array 
+
+ndtype = np.dtype([('a', '<i4'), ('b', [('ba', '<f8'), ('bb', '<i4')])])
+flatten_description = rfn.flatten_descr(ndtype)
+
+# print(flatten_description)  #! (('a', dtype('int32')), ('ba', dtype('float64')), ('bb', dtype('int32')))
+
+
+### getting fields and their parents as a dictionary
+
+ndtype =  np.dtype([('A', int),
+
+                    ('B', [('BA', int),
+
+                           ('BB', [('BBA', int), ('BBB', int)])])])
+
+# print(rfn.get_fieldstructure(ndtype))
+
+### getting the name flat
+
+adtype = ndtype
+
+# print(rfn.get_names_flat(adtype))   # ('A', 'B', 'BA', 'BB', 'BBA', 'BBB')  #! it returns a tuple
+
+
+### join two structured arrays by specific keys
+
+r1 = np.array([(1, "Alice"), (2, "Bob"), (3, "Charlie")], dtype=[('id', int), ('name', 'U10')])
+r2 = np.array([(2, 25), (3, 30), (4, 35)], dtype=[('id', int), ('age', int)])
+
+joined_array = rfn.join_by(key="id", r1= r1, r2=r2)  #! it joined them where id numbers are matched
+# print(joined_array)
+
+arr1 = np.array([1,2,3])
+arr2 = np.array([10.0,20.0,30.0])
+
+merged_array = rfn.merge_arrays((arr1, arr2))
+# print(merged_array)
+
+
+arr1 = np.array([("hello", 1), ("hallo", 2)], dtype=[("the_message", "U10"), ("id", "i4")])
+arr2 = np.array([("thanks", 2), ("danke shon", 3)], dtype=[("the_message", "U15"), ("id", "i4")])
+
+merged_array = rfn.merge_arrays((arr1, arr2))
+# print(merged_array)
+# print(merged_array.dtype)
+
+
+### add a new fields in an existing array
+
+arr1 = np.array([("hello", 1), ("hallo", 2)], dtype=[("the_message", "U10"), ("id", "i4")])
+
+appended_array = rfn.rec_append_fields(arr1, names = "sender", data = ["english person", "german person"], dtypes= ("U15"))
+
+# print(appended_array.dtype)
+
+
+### dropping the names 
+
+#! we will use the arr1 in this example
+
+the_arr1_without_message = rfn.rec_drop_fields(arr1, "the_message")
+# print(the_arr1_without_message)
+
+
+### fill an output array according to an input array
+
+input_arr = np.array([(1,10),(2,20)], dtype=[("a",np.int64), ("10_times_a", np.float64)])
+output_arr = np.ones(3, dtype=input_arr.dtype)
+
+
+result_arr = rfn.recursive_fill_fields(input_arr, output_arr)  #! the output arrays size must be at least size of input array
+# print(result_arr)
+
+
+
+### rename the fields: :)
+
+any_array_in_this_example = np.array([(1,2,3.4), (3,4,23)], dtype=[("a", np.int64), ("b", np.float64), ("c", np.double)])
+
+field_name_changed_array = rfn.rename_fields(any_array_in_this_example, {"a" : "first_column"})
+
+# print(field_name_changed_array.dtype)  # [('first_column', '<i8'), ('b', '<f8'), ('c', '<f8')]
+
+
+
+### repacking (reorganizing) the fields
+
+dt = np.dtype("u1,<i4,<i8", align=True)
+
+
+def print_offsets(d):
+
+    print("Offsets:", [d.fields[name][1] for name in d.names])
+    print("Itemsize:", d.itemsize)
+
+
+# print_offsets(dt)  
+
+            # Offsets: [0, 12, 16]
+            # Itemsize: 24
+
+repacked_item = rfn.repack_fields(dt)
+# print_offsets(repacked_item)
+
+            # Offsets: [0, 12, 16]
+            # Itemsize: 24
+
+
+
+
+
